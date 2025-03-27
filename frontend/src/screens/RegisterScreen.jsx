@@ -25,12 +25,11 @@ const RegisterScreen = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const [register] = useRegisterMutation();
+  const [register, { isLoading }] = useRegisterMutation(); // RTK Query ka loading state use kiya
 
   const { userInfo } = useSelector((state) => state.auth);
   const { search } = useLocation();
@@ -50,14 +49,11 @@ const RegisterScreen = () => {
       return;
     }
     try {
-      setLoading(true);
       const res = await register({ name, email, password }).unwrap();
       dispatch(setCredentials({ ...res }));
       navigate(redirect);
     } catch (err) {
       setError(err?.data?.message || err.error || 'An error occurred');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -88,7 +84,10 @@ const RegisterScreen = () => {
               <Input
                 type='text'
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  setError('');
+                }}
                 required
               />
             </FormControl>
@@ -97,7 +96,10 @@ const RegisterScreen = () => {
               <Input
                 type='email'
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setError('');
+                }}
                 required
               />
             </FormControl>
@@ -106,16 +108,22 @@ const RegisterScreen = () => {
               <Input
                 type='password'
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setError('');
+                }}
                 required
               />
             </FormControl>
-            <FormControl id='confirmPassword'>
+            <FormControl id='confirmPassword' isInvalid={password !== confirmPassword && confirmPassword.length > 0}>
               <FormLabel>Confirm Password</FormLabel>
               <Input
                 type='password'
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  setError('');
+                }}
                 required
               />
             </FormControl>
@@ -127,7 +135,7 @@ const RegisterScreen = () => {
                   bg: 'blue.500',
                 }}
                 type='submit'
-                isLoading={loading}
+                isLoading={isLoading} // Direct RTK Query se loading
               >
                 Sign up
               </Button>

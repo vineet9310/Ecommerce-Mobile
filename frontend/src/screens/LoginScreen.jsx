@@ -23,13 +23,11 @@ const LoginScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const [login] = useLoginMutation();
-
+  const [login, { isLoading }] = useLoginMutation();
   const { userInfo } = useSelector((state) => state.auth);
   const { search } = useLocation();
   const sp = new URLSearchParams(search);
@@ -43,15 +41,19 @@ const LoginScreen = () => {
 
   const submitHandler = async (e) => {
     e.preventDefault();
+    setError(''); // Reset previous errors before submitting
     try {
-      setLoading(true);
       const res = await login({ email, password }).unwrap();
-      dispatch(setCredentials({ ...res }));
+      
+      if (!res.token) {
+        throw new Error('Invalid response, token missing!');
+      }
+
+      dispatch(setCredentials(res)); // Redux me store kar raha hai
       navigate(redirect);
     } catch (err) {
-      setError(err?.data?.message || err.error || 'An error occurred');
-    } finally {
-      setLoading(false);
+      console.error('Login Error:', err);
+      setError(err?.data?.message || err?.message || 'Invalid email or password');
     }
   };
 
@@ -77,22 +79,26 @@ const LoginScreen = () => {
         )}
         <form onSubmit={submitHandler}>
           <Stack spacing={4}>
-            <FormControl id='email'>
+            <FormControl id='email' isRequired>
               <FormLabel>Email address</FormLabel>
               <Input
                 type='email'
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setError('');
+                }}
               />
             </FormControl>
-            <FormControl id='password'>
+            <FormControl id='password' isRequired>
               <FormLabel>Password</FormLabel>
               <Input
                 type='password'
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setError('');
+                }}
               />
             </FormControl>
             <Stack spacing={10}>
@@ -110,7 +116,8 @@ const LoginScreen = () => {
                   bg: 'blue.500',
                 }}
                 type='submit'
-                isLoading={loading}
+                isLoading={isLoading} 
+                isDisabled={!email || !password} // Prevent empty form submission
               >
                 Sign in
               </Button>

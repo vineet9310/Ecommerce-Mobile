@@ -1,9 +1,18 @@
 import { createSlice } from '@reduxjs/toolkit';
 
+// Safe localStorage parsing
+const loadFromStorage = (key) => {
+  try {
+    const data = localStorage.getItem(key);
+    return data && data !== 'undefined' ? JSON.parse(data) : null;
+  } catch (error) {
+    console.error(`Error loading ${key} from localStorage`, error);
+    return null;
+  }
+};
+
 const initialState = {
-  userInfo: localStorage.getItem('userInfo')
-    ? JSON.parse(localStorage.getItem('userInfo'))
-    : null,
+  userInfo: loadFromStorage('userInfo'),
   token: localStorage.getItem('token') || null,
 };
 
@@ -12,20 +21,31 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     setCredentials: (state, action) => {
-      state.userInfo = action.payload.user;
-      state.token = action.payload.token;
-      localStorage.setItem('userInfo', JSON.stringify(action.payload.user));
-      localStorage.setItem('token', action.payload.token);
+      const { user, token } = action.payload;
+
+      state.userInfo = user;
+      state.token = token;
+
+      try {
+        if (user) localStorage.setItem('userInfo', JSON.stringify(user));
+        if (token) localStorage.setItem('token', token);
+      } catch (error) {
+        console.error('Error saving to localStorage', error);
+      }
     },
     logout: (state) => {
       state.userInfo = null;
       state.token = null;
-      localStorage.removeItem('userInfo');
-      localStorage.removeItem('token');
+
+      try {
+        localStorage.removeItem('userInfo');
+        localStorage.removeItem('token');
+      } catch (error) {
+        console.error('Error removing from localStorage', error);
+      }
     },
   },
 });
 
 export const { setCredentials, logout } = authSlice.actions;
-
 export default authSlice.reducer;

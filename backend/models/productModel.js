@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const reviewSchema = mongoose.Schema(
+const reviewSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     rating: { type: Number, required: true },
@@ -12,11 +12,11 @@ const reviewSchema = mongoose.Schema(
     },
   },
   {
-    timestamps: true,
+    timestamps: true, // Reviews will have createdAt & updatedAt
   }
 );
 
-const productSchema = mongoose.Schema(
+const productSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -25,57 +25,53 @@ const productSchema = mongoose.Schema(
     },
     name: {
       type: String,
-      required: true,
+      required: [true, "Product name is required"],
     },
     image: {
       type: String,
-      required: true,
+      required: [true, "Product image is required"],
     },
     brand: {
       type: String,
-      required: true,
+      required: [true, "Brand is required"],
     },
     category: {
       type: String,
-      required: true,
+      required: [true, "Category is required"],
     },
     description: {
       type: String,
-      required: true,
+      required: [true, "Product description is required"],
     },
     reviews: [reviewSchema],
     rating: {
       type: Number,
-      required: true,
-      default: 0,
+      default: 0, // Default rating 0
     },
     numReviews: {
       type: Number,
-      required: true,
       default: 0,
     },
     price: {
       type: Number,
-      required: true,
-      default: 0,
+      required: [true, "Price is required"], // If missing, show error
     },
     countInStock: {
       type: Number,
-      required: true,
-      default: 0,
+      required: [true, "Stock count is required"], // If missing, show error
     },
-    features: [{
-      type: String,
-      required: true,
-    }],
+    features: {
+      type: [String], // Features will be an array of strings
+      default: [], // If not provided, set empty array
+    },
     specifications: {
-      type: Map,
-      of: String,
-      required: true,
+      type: Object, // Store as key-value pairs
+      required: [true, "Specifications are required"],
+      default: {},
     },
   },
   {
-    timestamps: true,
+    timestamps: true, // Products will have createdAt & updatedAt
   }
 );
 

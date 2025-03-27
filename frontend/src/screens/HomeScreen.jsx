@@ -24,7 +24,10 @@ const HomeScreen = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('price');
 
-  const { data: products, isLoading, error } = useGetProductsQuery();
+  const { data: productsData, isLoading, error } = useGetProductsQuery();
+
+  // Extract products array from the API response
+  const products = productsData?.products ? productsData.products : [];
 
   const sortProducts = (products) => {
     if (!products) return [];

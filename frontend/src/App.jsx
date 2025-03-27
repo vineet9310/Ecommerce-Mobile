@@ -7,6 +7,10 @@ import ProductScreen from './screens/ProductScreen';
 import CartScreen from './screens/CartScreen';
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
+import ProfileScreen from './screens/ProfileScreen';
+import AdminDashboard from './screens/AdminDashboard';
+import PrivateRoute from './screens/PrivateRoute';
+import NotFoundScreen from './screens/NotFoundScreen';
 
 function App() {
   return (
@@ -20,6 +24,13 @@ function App() {
             <Route path='/cart/:id?' element={<CartScreen />} />
             <Route path='/login' element={<LoginScreen />} />
             <Route path='/register' element={<RegisterScreen />} />
+            
+            {/* Protected Routes */}
+            <Route path='/profile' element={<PrivateRoute><ProfileScreen /></PrivateRoute>} />
+            <Route path='/admin/dashboard' element={<PrivateRoute admin><AdminDashboard /></PrivateRoute>} />
+
+            {/* 404 Page */}
+            <Route path='*' element={<NotFoundScreen />} />
           </Routes>
         </Container>
       </main>

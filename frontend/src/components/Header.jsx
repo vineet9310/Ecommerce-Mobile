@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { logout } from "../slices/authSlice";
 import {
@@ -22,26 +22,45 @@ import {
   HamburgerIcon,
   CloseIcon,
   ChevronDownIcon,
-  ChevronRightIcon,
   SearchIcon,
   PhoneIcon,
 } from "@chakra-ui/icons";
 import { Link as RouterLink } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
+
+
 const Header = () => {
   const { isOpen, onToggle } = useDisclosure();
   const [search, setSearch] = useState("");
-  const { userInfo } = useSelector((state) => state.auth);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    setIsAuthenticated(!!token);
+  }, []);
+
   const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsAuthenticated(false);
     dispatch(logout());
     navigate('/');
   };
+
   const handleSearch = (e) => {
     e.preventDefault();
-    if (search.trim()) navigate(`/search?q=${search}`);
+    const trimmedSearch = search.trim();
+    if (trimmedSearch) {
+      navigate(`/search?q=${encodeURIComponent(trimmedSearch)}`);
+    }
   };
-  
-  
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch(e);
+    }
+  };
 
   return (
     <Box>
@@ -51,7 +70,7 @@ const Header = () => {
         minH={"60px"}
         py={{ base: 2 }}
         px={{ base: 4 }}
-        borderBottom={1}
+        borderBottom="1px"
         borderStyle={"solid"}
         borderColor={useColorModeValue("gray.200", "gray.900")}
         align={"center"}
@@ -77,6 +96,7 @@ const Header = () => {
             color={useColorModeValue("gray.800", "white")}
             as={RouterLink}
             to="/"
+            _hover={{ color: "blue.500" }}
           >
             <Icon as={PhoneIcon} w={6} h={6} mr={2} />
             MobileShop
@@ -95,7 +115,7 @@ const Header = () => {
                     color={useColorModeValue("gray.600", "gray.200")}
                     _hover={{
                       textDecoration: "none",
-                      color: useColorModeValue("gray.800", "white"),
+                      color: useColorModeValue("blue.500", "blue.300"),
                     }}
                   >
                     {navItem.label}
@@ -117,24 +137,25 @@ const Header = () => {
               placeholder="Search products..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              onKeyPress={handleKeyPress}
             />
             <InputRightElement>
-  <IconButton
-    icon={<SearchIcon />}
-    aria-label="Search"
-    size="sm"
-    onClick={handleSearch}
-  />
-</InputRightElement>
-
+              <IconButton
+                icon={<SearchIcon />}
+                aria-label="Search"
+                size="sm"
+                onClick={handleSearch}
+              />
+            </InputRightElement>
           </InputGroup>
-          {!userInfo ? (
+          {!isAuthenticated ? (
             <Button
               as={RouterLink}
               to="/login"
               fontSize={"sm"}
               fontWeight={400}
               variant={"link"}
+              _hover={{ color: "blue.500" }}
             >
               Sign In
             </Button>
@@ -143,7 +164,9 @@ const Header = () => {
               onClick={handleLogout}
               fontSize={"sm"}
               fontWeight={400}
+              variant="ghost"
               color={"red.500"}
+              _hover={{ bg: "red.50" }}
             >
               Logout
             </Button>
@@ -158,7 +181,7 @@ const Header = () => {
             color={"white"}
             bg={"blue.400"}
             _hover={{
-              bg: "blue.300",
+              bg: "blue.500",
             }}
           >
             Cart
@@ -200,6 +223,7 @@ const MobileNavItem = ({ label, children, href }) => {
         align={"center"}
         _hover={{
           textDecoration: "none",
+          color: "blue.500",
         }}
       >
         <Text
@@ -230,7 +254,13 @@ const MobileNavItem = ({ label, children, href }) => {
         >
           {children &&
             children.map((child) => (
-              <Link key={child.label} py={2} as={RouterLink} to={child.href}>
+              <Link 
+                key={child.label} 
+                py={2} 
+                as={RouterLink} 
+                to={child.href}
+                _hover={{ color: "blue.500" }}
+              >
                 {child.label}
               </Link>
             ))}

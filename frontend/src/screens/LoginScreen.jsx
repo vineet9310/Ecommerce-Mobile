@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { useLoginMutation } from '../slices/usersApiSlice';
+import { useLoginUserMutation } from '../slices/apiSlice';
 import { setCredentials } from '../slices/authSlice';
 import {
   Box,
   FormControl,
   FormLabel,
   Input,
+  InputRightElement,
+  InputGroup,
   Stack,
   Link,
   Button,
@@ -18,20 +20,23 @@ import {
   AlertIcon,
 } from '@chakra-ui/react';
 import { Link as RouterLink } from 'react-router-dom';
+import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
-  const [login, { isLoading }] = useLoginMutation();
   const { userInfo } = useSelector((state) => state.auth);
+
   const { search } = useLocation();
   const sp = new URLSearchParams(search);
   const redirect = sp.get('redirect') || '/';
+
+  const [loginUser, { isLoading }] = useLoginUserMutation();
 
   useEffect(() => {
     if (userInfo) {
@@ -41,15 +46,19 @@ const LoginScreen = () => {
 
   const submitHandler = async (e) => {
     e.preventDefault();
-    setError(''); // Reset previous errors before submitting
+    setError('');
+
     try {
-      const res = await login({ email, password }).unwrap();
-      
+      const res = await loginUser({ email, password }).unwrap();
+
       if (!res.token) {
         throw new Error('Invalid response, token missing!');
       }
 
-      dispatch(setCredentials(res)); // Redux me store kar raha hai
+      // ✅ Redux store update + local storage me token save
+      dispatch(setCredentials(res));
+      localStorage.setItem('token', res.token);
+
       navigate(redirect);
     } catch (err) {
       console.error('Login Error:', err);
@@ -65,12 +74,7 @@ const LoginScreen = () => {
           to enjoy all of our cool features ✌️
         </Text>
       </Stack>
-      <Box
-        rounded={'lg'}
-        bg={useColorModeValue('white', 'gray.700')}
-        boxShadow={'lg'}
-        p={8}
-      >
+      <Box rounded={'lg'} bg={useColorModeValue('white', 'gray.700')} boxShadow={'lg'} p={8}>
         {error && (
           <Alert status='error' mb={4}>
             <AlertIcon />
@@ -79,6 +83,7 @@ const LoginScreen = () => {
         )}
         <form onSubmit={submitHandler}>
           <Stack spacing={4}>
+            {/* ✅ Email Input */}
             <FormControl id='email' isRequired>
               <FormLabel>Email address</FormLabel>
               <Input
@@ -88,40 +93,49 @@ const LoginScreen = () => {
                   setEmail(e.target.value);
                   setError('');
                 }}
+                onKeyPress={(e) => e.key === 'Enter' && submitHandler(e)}
               />
             </FormControl>
+
+            {/* ✅ Password Input with Toggle */}
             <FormControl id='password' isRequired>
               <FormLabel>Password</FormLabel>
-              <Input
-                type='password'
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  setError('');
-                }}
-              />
+              <InputGroup>
+                <Input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setError('');
+                  }}
+                  onKeyPress={(e) => e.key === 'Enter' && submitHandler(e)}
+                />
+                <InputRightElement h={'full'}>
+                  <Button variant={'ghost'} onClick={() => setShowPassword((prev) => !prev)}>
+                    {showPassword ? <ViewOffIcon /> : <ViewIcon />}
+                  </Button>
+                </InputRightElement>
+              </InputGroup>
             </FormControl>
+
             <Stack spacing={10}>
-              <Stack
-                direction={{ base: 'column', sm: 'row' }}
-                align={'start'}
-                justify={'space-between'}
-              >
+              <Stack direction={{ base: 'column', sm: 'row' }} align={'start'} justify={'space-between'}>
                 <Link color={'blue.400'}>Forgot password?</Link>
               </Stack>
+              {/* ✅ Login Button */}
               <Button
                 bg={'blue.400'}
                 color={'white'}
-                _hover={{
-                  bg: 'blue.500',
-                }}
+                _hover={{ bg: 'blue.500' }}
                 type='submit'
-                isLoading={isLoading} 
-                isDisabled={!email || !password} // Prevent empty form submission
+                isLoading={isLoading}
+                isDisabled={!email || !password}
               >
                 Sign in
               </Button>
             </Stack>
+
+            {/* ✅ Register Link */}
             <Stack pt={6}>
               <Text align={'center'}>
                 Don't have an account?{' '}

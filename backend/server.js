@@ -6,6 +6,7 @@ import cors from 'cors'; // Import the cors package
 import userRoutes from './routes/userRoutes.js';
 import { errorHandler } from './middleware/errorMiddleware.js';
 import productRoutes from './routes/productRoutes.js';
+import cartRoutes from './routes/cartRoutes.js';
 
 // Load env vars
 dotenv.config();
@@ -39,6 +40,7 @@ app.use((err, req, res, next) => {
 });
 app.use('/api/products', productRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/cart', cartRoutes);
 
 app.use(errorHandler);
 
@@ -48,4 +50,11 @@ app.listen(PORT, () => {
   console.log(
     `Server running in ${process.env.NODE_ENV} mode on port ${PORT}`.yellow.bold
   );
+});
+app.use((err, req, res, next) => {
+  console.error('Error Middleware:', err);  // 👈 Ye line error ko console me print karegi
+  res.status(err.statusCode || 500).json({
+      message: err.message || 'Internal Server Error',
+      stack: process.env.NODE_ENV === 'production' ? null : err.stack,
+  });
 });

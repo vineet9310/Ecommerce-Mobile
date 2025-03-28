@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { useRegisterMutation } from '../slices/usersApiSlice';
+import { useRegisterUserMutation } from '../slices/apiSlice'; // ✅ Corrected API Slice
 import { setCredentials } from '../slices/authSlice';
 import {
   Box,
@@ -29,12 +29,12 @@ const RegisterScreen = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const [register, { isLoading }] = useRegisterMutation(); // RTK Query ka loading state use kiya
-
   const { userInfo } = useSelector((state) => state.auth);
   const { search } = useLocation();
   const sp = new URLSearchParams(search);
   const redirect = sp.get('redirect') || '/';
+
+  const [registerUser, { isLoading }] = useRegisterUserMutation(); // ✅ RTK Query call
 
   useEffect(() => {
     if (userInfo) {
@@ -44,18 +44,29 @@ const RegisterScreen = () => {
 
   const submitHandler = async (e) => {
     e.preventDefault();
+    setError('');
+  
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
     }
+  
     try {
-      const res = await register({ name, email, password }).unwrap();
-      dispatch(setCredentials({ ...res }));
+      const res = await registerUser({ name, email, password }).unwrap();
+      // console.log('✅ API Response (Register):', res);
+  
+      dispatch(setCredentials(res)); // ✅ Save user to Redux
+      localStorage.setItem('userInfo', JSON.stringify(res)); // ✅ Save to localStorage
+  
       navigate(redirect);
     } catch (err) {
+      console.error('❌ Registration Failed:', err);
       setError(err?.data?.message || err.error || 'An error occurred');
     }
   };
+  
+  
+  
 
   return (
     <Stack spacing={8} mx={'auto'} maxW={'lg'} py={12} px={6}>
@@ -84,10 +95,7 @@ const RegisterScreen = () => {
               <Input
                 type='text'
                 value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                  setError('');
-                }}
+                onChange={(e) => setName(e.target.value)}
                 required
               />
             </FormControl>
@@ -96,10 +104,7 @@ const RegisterScreen = () => {
               <Input
                 type='email'
                 value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  setError('');
-                }}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </FormControl>
@@ -108,34 +113,32 @@ const RegisterScreen = () => {
               <Input
                 type='password'
                 value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  setError('');
-                }}
+                onChange={(e) => setPassword(e.target.value)}
                 required
               />
             </FormControl>
-            <FormControl id='confirmPassword' isInvalid={password !== confirmPassword && confirmPassword.length > 0}>
+            <FormControl
+              id='confirmPassword'
+              isInvalid={password !== confirmPassword && confirmPassword.length > 0}
+            >
               <FormLabel>Confirm Password</FormLabel>
               <Input
                 type='password'
                 value={confirmPassword}
-                onChange={(e) => {
-                  setConfirmPassword(e.target.value);
-                  setError('');
-                }}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 required
               />
+              {password !== confirmPassword && confirmPassword.length > 0 && (
+                <Text color='red.500' fontSize='sm'>Passwords do not match</Text>
+              )}
             </FormControl>
             <Stack spacing={10}>
               <Button
                 bg={'blue.400'}
                 color={'white'}
-                _hover={{
-                  bg: 'blue.500',
-                }}
+                _hover={{ bg: 'blue.500' }}
                 type='submit'
-                isLoading={isLoading} // Direct RTK Query se loading
+                isLoading={isLoading} // ✅ Loading state
               >
                 Sign up
               </Button>

@@ -11,8 +11,21 @@ import ProfileScreen from './screens/ProfileScreen';
 import AdminDashboard from './screens/AdminDashboard';
 import PrivateRoute from './screens/PrivateRoute';
 import NotFoundScreen from './screens/NotFoundScreen';
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchCart } from './slices/cartSlice';
 
 function App() {
+
+  const dispatch = useDispatch();
+  const { userInfo } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (userInfo) {
+      dispatch(fetchCart());
+    }
+  }, [userInfo, dispatch]);
+
   return (
     <Router>
       <Header />

@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
 import { useGetProductQuery } from '../slices/productsApiSlice';
-import { addToCart } from '../slices/cartSlice';
+import { useAddToCartMutation } from '../slices/cartApiSlice';
+
 import {
   Box,
   Container,
@@ -32,15 +32,22 @@ import { StarIcon } from '@chakra-ui/icons';
 const ProductScreen = () => {
   const { id: productId } = useParams();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const [addToCart] = useAddToCartMutation();
   const [qty, setQty] = useState(1);
 
   const { data: product, isLoading, error } = useGetProductQuery(productId);
 
-  const addToCartHandler = () => {
-    dispatch(addToCart({ ...product, qty }));
+  const [errorMessage, setErrorMessage] = useState(null); // New state for error
+
+const addToCartHandler = async () => {
+  try {
+    await addToCart({ productId, quantity: qty }).unwrap();
     navigate('/cart');
-  };
+  } catch (err) {
+    setErrorMessage(err?.data?.message || 'Something went wrong!');
+  }
+};
+  
 
   if (isLoading) {
     return (
@@ -122,7 +129,7 @@ const ProductScreen = () => {
 
               <SimpleGrid columns={{ base: 1, md: 2 }} spacing={10}>
                 <List spacing={2}>
-                  {product.features.map((feature, index) => (
+                  {product.features?.map((feature, index) => (
                     <ListItem key={index}>{feature}</ListItem>
                   ))}
                 </List>
@@ -141,7 +148,7 @@ const ProductScreen = () => {
               </Text>
 
               <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
-                {Object.entries(product.specifications || {}).map(([key, value]) => (
+                {Object.entries(product.specifications ?? {}).map(([key, value]) => (
                   <Box key={key}>
                     <Text fontWeight={'bold'}>{key}:</Text>
                     <Text>{value}</Text>
@@ -226,7 +233,7 @@ const ProductScreen = () => {
               transform: 'translateY(2px)',
               boxShadow: 'lg',
             }}
-            isDisabled={product.countInStock === 0}
+            isDisabled={!product.countInStock || product.countInStock <= 0}
             onClick={addToCartHandler}
           >
             Add to cart
@@ -250,7 +257,7 @@ const ProductScreen = () => {
             >
               Reviews
             </Text>
-            {product.reviews.map((review, index) => (
+            {product.reviews?.map((review, index) => (
               <Box key={index}>
                 <Stack direction='row' spacing={2} mb={2}>
                   <Text fontWeight='bold'>{review.name}</Text>

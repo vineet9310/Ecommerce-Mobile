@@ -64,93 +64,93 @@ const HomeScreen = () => {
         ) : (
           <>
             <HStack spacing={4}>
-          <Input
-            placeholder='Search products...'
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <Select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-            <option value='price'>Sort by Price</option>
-            <option value='rating'>Sort by Rating</option>
-            <option value='name'>Sort by Name</option>
-          </Select>
-        </HStack>
+              <Input
+                placeholder='Search products...'
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <Select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+                <option value='price'>Sort by Price</option>
+                <option value='rating'>Sort by Rating</option>
+                <option value='name'>Sort by Name</option>
+              </Select>
+            </HStack>
 
-        <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing={6}>
-          {filteredProducts.map((product) => (
-            <Box
-              key={product._id}
-              maxW='sm'
-              borderWidth='1px'
-              borderRadius='lg'
-              overflow='hidden'
-              _hover={{
-                transform: 'translateY(-5px)',
-                transition: 'all 0.2s ease-in-out',
-                shadow: 'lg',
-              }}
-              as={RouterLink}
-              to={`/product/${product._id}`}
-            >
-              <Image src={product.image} alt={product.name} />
-
-              <Box p='6'>
-                <Box display='flex' alignItems='baseline' gap={2}>
-                  <Badge borderRadius='full' px='2' colorScheme='blue'>
-                    {product.brand}
-                  </Badge>
-                  <Badge borderRadius='full' px='2' colorScheme='purple'>
-                    {product.category}
-                  </Badge>
-                </Box>
-
-                <Heading
-                  mt='1'
-                  fontSize='lg'
-                  lineHeight='tight'
-                  noOfLines={2}
-                  color={useColorModeValue('gray.700', 'white')}
+            <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing={6}>
+              {filteredProducts.map((product) => (
+                <Box
+                  key={product._id}
+                  maxW='sm'
+                  borderWidth='1px'
+                  borderRadius='lg'
+                  overflow='hidden'
+                  _hover={{
+                    transform: 'translateY(-5px)',
+                    transition: 'all 0.2s ease-in-out',
+                    shadow: 'lg',
+                  }}
+                  as={RouterLink}
+                  to={`/product/${product._id}`}
                 >
-                  {product.name}
-                </Heading>
+                  <Image src={product.image} alt={product.name} />
 
-                <Text fontSize='sm' color='gray.600' noOfLines={2} mt={2}>
-                  {product.description}
-                </Text>
+                  <Box p='6'>
+                    <Box display='flex' alignItems='baseline' gap={2}>
+                      <Badge borderRadius='full' px='2' colorScheme='blue'>
+                        {product.brand}
+                      </Badge>
+                      <Badge borderRadius='full' px='2' colorScheme='purple'>
+                        {product.category}
+                      </Badge>
+                    </Box>
 
-                <Stack spacing={2} mt={3}>
-                  <Text fontSize='sm' fontWeight='bold'>
-                    Key Specifications:
-                  </Text>
-                  <SimpleGrid columns={2} spacing={2} fontSize='xs'>
-                    <Text>• {product.specifications['Display']}</Text>
-                    <Text>• {product.specifications['Processor']}</Text>
-                  </SimpleGrid>
-                </Stack>
+                    <Heading
+                      mt='1'
+                      fontSize='lg'
+                      lineHeight='tight'
+                      noOfLines={2}
+                      color={useColorModeValue('gray.700', 'white')}
+                    >
+                      {product.name}
+                    </Heading>
 
-                <Box mt={3}>
-                  <Text fontSize='xl' fontWeight='bold' color={useColorModeValue('blue.600', 'blue.300')}>
-                    ${product.price.toFixed(2)}
-                  </Text>
-                  <Box display='flex' alignItems='center' mt={1}>
-                    {Array(5)
-                      .fill('')
-                      .map((_, i) => (
-                        <StarIcon
-                          key={i}
-                          color={i < product.rating ? 'yellow.400' : 'gray.300'}
-                          boxSize={3}
-                        />
-                      ))}
-                    <Text color='gray.600' fontSize='sm' ml={2}>
-                      ({product.numReviews} reviews)
+                    <Text fontSize='sm' color='gray.600' noOfLines={2} mt={2}>
+                      {product.description}
                     </Text>
+
+                    <Stack spacing={2} mt={3}>
+                      <Text fontSize='sm' fontWeight='bold'>
+                        Key Specifications:
+                      </Text>
+                      <SimpleGrid columns={2} spacing={2} fontSize='xs'>
+                        <Text>• {product.specifications['Display']}</Text>
+                        <Text>• {product.specifications['Processor']}</Text>
+                      </SimpleGrid>
+                    </Stack>
+
+                    <Box mt={3}>
+                      <Text fontSize='xl' fontWeight='bold' color={useColorModeValue('blue.600', 'blue.300')}>
+                        ${product.price.toFixed(2)}
+                      </Text>
+                      <Box display='flex' alignItems='center' mt={1}>
+                        {Array(5)
+                          .fill('')
+                          .map((_, i) => (
+                            <StarIcon
+                              key={i}
+                              color={i < product.rating ? 'yellow.400' : 'gray.300'}
+                              boxSize={3}
+                            />
+                          ))}
+                        <Text color='gray.600' fontSize='sm' ml={2}>
+                          ({product.numReviews} reviews)
+                        </Text>
+                      </Box>
+                    </Box>
                   </Box>
                 </Box>
-              </Box>
-            </Box>
-          ))}
-        </SimpleGrid>
+              ))}
+            </SimpleGrid>
           </>
         )}
       </Stack>

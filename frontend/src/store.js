@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { apiSlice } from './slices/apiSlice';
 import { cartApiSlice } from './slices/cartApiSlice';
-import { cartSliceReducer } from './slices/cartSlice'; // ✅ Changed to named import
+import cartSliceReducer from './slices/cartSlice'; // ✅ Changed to default import if applicable
 import authSliceReducer from './slices/authSlice';
 
 const store = configureStore({
@@ -13,7 +13,7 @@ const store = configureStore({
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(apiSlice.middleware, cartApiSlice.middleware),
-  devTools: import.meta.env.MODE !== 'production',  // ✅ Fix: Works better with Vite
+  devTools: import.meta.env?.MODE !== 'production' || process.env.NODE_ENV !== 'production', // ✅ More robust check
 });
 
 export default store;

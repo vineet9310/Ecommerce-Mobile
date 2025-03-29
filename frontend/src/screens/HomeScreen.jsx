@@ -19,6 +19,9 @@ import {
 import { StarIcon } from '@chakra-ui/icons';
 import { Link as RouterLink } from 'react-router-dom';
 import { useGetProductsQuery } from '../slices/productsApiSlice';
+import { useDispatch } from 'react-redux';
+import { useAddToCartMutation } from '../slices/cartApiSlice';
+import { setCartItems } from '../slices/cartSlice';
 
 const HomeScreen = () => {
   const [searchTerm, setSearchTerm] = useState('');

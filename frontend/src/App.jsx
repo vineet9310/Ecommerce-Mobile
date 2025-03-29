@@ -16,9 +16,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchCart } from './slices/cartSlice';
 
 function App() {
-
   const dispatch = useDispatch();
-  const { userInfo } = useSelector((state) => state.auth);
+  const userInfo = useSelector((state) => state.auth?.userInfo);
 
   useEffect(() => {
     if (userInfo) {
@@ -32,7 +31,7 @@ function App() {
       <main className='py-3'>
         <Container maxW='container.xl'>
           <Routes>
-            <Route path='/' element={<HomeScreen />} exact />
+            <Route path='/' element={<HomeScreen />} />
             <Route path='/product/:id' element={<ProductScreen />} />
             <Route path='/cart/:id?' element={<CartScreen />} />
             <Route path='/login' element={<LoginScreen />} />
@@ -40,7 +39,7 @@ function App() {
             
             {/* Protected Routes */}
             <Route path='/profile' element={<PrivateRoute><ProfileScreen /></PrivateRoute>} />
-            <Route path='/admin/dashboard' element={<PrivateRoute admin><AdminDashboard /></PrivateRoute>} />
+            <Route path='/admin/dashboard' element={<PrivateRoute admin={true}><AdminDashboard /></PrivateRoute>} />
 
             {/* 404 Page */}
             <Route path='*' element={<NotFoundScreen />} />

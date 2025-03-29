@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useGetCartQuery, useAddToCartMutation, useUpdateCartMutation, useRemoveFromCartMutation } from '../slices/cartApiSlice';
+import { useGetCartQuery, useUpdateCartMutation, useRemoveFromCartMutation } from '../slices/cartApiSlice';
 import { setCartItems } from '../slices/cartSlice';
 import {
   Box,
@@ -9,14 +9,10 @@ import {
   Text,
   Image,
   Flex,
-  VStack,
   Button,
   Heading,
   SimpleGrid,
   StackDivider,
-  useColorModeValue,
-  List,
-  ListItem,
   NumberInput,
   NumberInputField,
   NumberInputStepper,
@@ -34,71 +30,49 @@ const CartScreen = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // Fetch cart from backend
-  const { data: cartData, isLoading, error } = useGetCartQuery();
-  console.log('Cart Data from API:', cartData); // Debugging
+  const { data: cartData, isLoading, error, refetch } = useGetCartQuery();
+  const [updateCart] = useUpdateCartMutation();
+  const [removeFromCart] = useRemoveFromCartMutation();
 
-  // Set cart in Redux
   useEffect(() => {
-    if (cartData && cartData.cartItems && cartData.cartItems.length > 0) {
-      dispatch(setCartItems(cartData.cartItems)); // Use cartItems from API response
-    } else {
-      console.warn('Cart data is empty or undefined:', cartData); // Debugging
-      dispatch(setCartItems([])); // Ensure Redux state is cleared if no data
+    if (cartData?.items) {
+      dispatch(setCartItems(cartData.items));
     }
   }, [cartData, dispatch]);
 
-  const { cartItems = [] } = useSelector((state) => state.cart);
-  console.log('Cart Items in Redux:', cartItems); // Debugging
+  const cartItems = useSelector((state) => state.cart.cartItems) || [];
 
-  // Remove item from cart
   const removeItemFromCart = async (id) => {
     try {
       await removeFromCart(id).unwrap();
-      dispatch(setCartItems(cartItems.filter((item) => item._id !== id)));
+      refetch();
     } catch (error) {
       console.error('Error removing item from cart:', error);
-      alert('Failed to remove item from cart. Please try again.');
+      alert('Failed to remove item. Try again.');
     }
   };
 
-  // Update quantity in cart
   const updateQty = async (id, qty) => {
-    const item = cartItems.find((x) => x._id === id);
-    if (item) {
-      try {
-        await updateCart({ productId: id, quantity: Number(qty) }).unwrap();
-        dispatch(setCartItems(cartItems.map((x) => (x._id === id ? { ...x, qty: Number(qty) } : x))));
-      } catch (error) {
-        console.error('Error updating item quantity in cart:', error);
-        alert('Failed to update item quantity. Please try again.');
-      }
-    } else {
-      console.warn('Item not found in cart:', id); // Debugging
+    if (qty < 1) return;
+    try {
+      await updateCart({ id, qty }).unwrap();
+      refetch();
+    } catch (error) {
+      console.error('Error updating quantity:', error);
+      alert('Failed to update quantity.');
     }
   };
 
-  const getCartTotal = () => {
-    return cartItems.reduce((total, item) => total + item.price * item.qty, 0);
-  };
+  const getCartTotal = () => cartItems.reduce((total, item) => total + item.price * item.qty, 0);
 
-  // Redirect if cart is empty
   useEffect(() => {
-    if (!isLoading && (!cartItems || cartItems.length === 0)) {
-      console.warn('Cart is empty. Redirecting to home page.'); // Debugging
-      setTimeout(() => {
-        navigate('/');
-      }, 2000);
+    if (!isLoading && cartItems.length === 0) {
+      const timer = setTimeout(() => navigate('/'), 1500);
+      return () => clearTimeout(timer);
     }
   }, [cartItems, isLoading, navigate]);
 
-  if (isLoading) {
-    return (
-      <Box textAlign="center" py={10}>
-        <Spinner size="xl" />
-      </Box>
-    );
-  }
+  if (isLoading) return <Box textAlign="center" py={10}><Spinner size="xl" /></Box>;
 
   if (error) {
     return (
@@ -114,54 +88,31 @@ const CartScreen = () => {
       <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={10}>
         <Stack spacing={6}>
           <Heading fontSize={'2xl'}>
-            Shopping Cart ({cartItems ? cartItems.length : 0} items)
+            Shopping Cart ({cartItems.length} items)
           </Heading>
-          {(!cartItems || cartItems.length === 0) ? (
+          {cartItems.length === 0 ? (
             <Text>Your cart is empty. Redirecting...</Text>
           ) : (
             <Stack spacing={6} divider={<StackDivider />}>
               {cartItems.map((item) => (
                 <Flex key={item._id} align={'center'} justify={'space-between'}>
                   <Stack direction={'row'} spacing={5} align={'center'} flex={1}>
-                    <Image
-                      src={item.image}
-                      alt={item.name}
-                      width={'100px'}
-                      height={'100px'}
-                      objectFit={'cover'}
-                    />
+                    <Image src={item.image} alt={item.name} width={'100px'} height={'100px'} objectFit={'cover'} />
                     <Box flex={1}>
-                      <Text
-                        fontSize={'lg'}
-                        fontWeight={'medium'}
-                        as={RouterLink}
-                        to={`/product/${item._id}`}
-                        _hover={{ color: 'blue.500' }}
-                      >
+                      <Text fontSize={'lg'} fontWeight={'medium'} as={RouterLink} to={`/product/${item._id}`} _hover={{ color: 'blue.500' }}>
                         {item.name}
                       </Text>
                       <Text color={'gray.600'}>${item.price.toFixed(2)}</Text>
                     </Box>
-                    <NumberInput
-                      size='sm'
-                      maxW={20}
-                      min={1}
-                      max={item.countInStock}
-                      value={item.qty}
-                      onChange={(valueString) => updateQty(item._id, Number(valueString))}
-                    >
+                    <NumberInput size='sm' maxW={20} min={1} max={item.countInStock} value={item.qty}
+                      onChange={(value) => updateQty(item._id, Number(value))}>
                       <NumberInputField />
                       <NumberInputStepper>
                         <NumberIncrementStepper />
                         <NumberDecrementStepper />
                       </NumberInputStepper>
                     </NumberInput>
-                    <IconButton
-                      icon={<DeleteIcon />}
-                      variant={'ghost'}
-                      colorScheme={'red'}
-                      onClick={() => removeItemFromCart(item._id)}
-                    />
+                    <IconButton icon={<DeleteIcon />} variant={'ghost'} colorScheme={'red'} onClick={() => removeItemFromCart(item._id)} />
                   </Stack>
                 </Flex>
               ))}
@@ -174,7 +125,7 @@ const CartScreen = () => {
           <Stack spacing={4}>
             <Flex justify={'space-between'}>
               <Text>Subtotal</Text>
-              <Text>${cartItems ? getCartTotal().toFixed(2) : '0.00'}</Text>
+              <Text>${getCartTotal().toFixed(2)}</Text>
             </Flex>
             <Flex justify={'space-between'}>
               <Text>Shipping</Text>
@@ -182,13 +133,9 @@ const CartScreen = () => {
             </Flex>
             <Flex justify={'space-between'} fontWeight={'bold'}>
               <Text>Total</Text>
-              <Text>${cartItems ? getCartTotal().toFixed(2) : '0.00'}</Text>
+              <Text>${getCartTotal().toFixed(2)}</Text>
             </Flex>
-            <Button
-              colorScheme={'blue'}
-              size={'lg'}
-              isDisabled={!cartItems || cartItems.length === 0 || isLoading} // Disable during loading
-            >
+            <Button colorScheme={'blue'} size={'lg'} isDisabled={cartItems.length === 0 || isLoading}>
               Proceed to Checkout
             </Button>
           </Stack>

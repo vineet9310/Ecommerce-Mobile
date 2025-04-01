@@ -13,17 +13,8 @@ import PrivateRoute from './screens/PrivateRoute';
 import NotFoundScreen from './screens/NotFoundScreen';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchCart } from './slices/cartSlice';
-
 function App() {
-  const dispatch = useDispatch();
   const userInfo = useSelector((state) => state.auth?.userInfo);
-
-  useEffect(() => {
-    if (userInfo) {
-      dispatch(fetchCart());
-    }
-  }, [userInfo, dispatch]);
 
   return (
     <Router>
@@ -33,7 +24,8 @@ function App() {
           <Routes>
             <Route path='/' element={<HomeScreen />} />
             <Route path='/product/:id' element={<ProductScreen />} />
-            <Route path='/cart/:id?' element={<CartScreen />} />
+            <Route path='/cart/:id?' element={<PrivateRoute><CartScreen /></PrivateRoute>} />
+            <Route path='/cart' element={<PrivateRoute><CartScreen /></PrivateRoute>} />
             <Route path='/login' element={<LoginScreen />} />
             <Route path='/register' element={<RegisterScreen />} />
             

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 import { logout } from "../slices/authSlice";
 import {
   Box,
@@ -28,24 +28,24 @@ import {
 import { Link as RouterLink } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 
-
 const Header = () => {
   const { isOpen, onToggle } = useDisclosure();
   const [search, setSearch] = useState("");
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  // ✅ Just use userInfo from Redux
+  const { userInfo } = useSelector((state) => state.auth);
+
+  // ✅ Monitor auth state changes
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    setIsAuthenticated(!!token);
-  }, []);
+    // This will re-render the header when auth state changes
+  }, [userInfo]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    setIsAuthenticated(false);
     dispatch(logout());
-    navigate('/');
+    navigate("/");
   };
 
   const handleSearch = (e) => {
@@ -57,7 +57,7 @@ const Header = () => {
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleSearch(e);
     }
   };
@@ -89,6 +89,7 @@ const Header = () => {
             aria-label={"Toggle Navigation"}
           />
         </Flex>
+
         <Flex flex={{ base: 1 }} justify={{ base: "center", md: "start" }}>
           <Text
             textAlign={useBreakpointValue({ base: "center", md: "left" })}
@@ -148,7 +149,9 @@ const Header = () => {
               />
             </InputRightElement>
           </InputGroup>
-          {!isAuthenticated ? (
+
+          {/* ✅ Conditional UI - show Logout if logged in */}
+          {!userInfo ? (
             <Button
               as={RouterLink}
               to="/login"
@@ -254,10 +257,10 @@ const MobileNavItem = ({ label, children, href }) => {
         >
           {children &&
             children.map((child) => (
-              <Link 
-                key={child.label} 
-                py={2} 
-                as={RouterLink} 
+              <Link
+                key={child.label}
+                py={2}
+                as={RouterLink}
                 to={child.href}
                 _hover={{ color: "blue.500" }}
               >

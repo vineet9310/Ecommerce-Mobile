@@ -3,16 +3,10 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 const baseQuery = fetchBaseQuery({
   baseUrl: 'http://localhost:5000/api',
   prepareHeaders: (headers, { getState }) => {
-    const userInfoString = localStorage.getItem('userInfo');
-    const userInfo = userInfoString ? JSON.parse(userInfoString) : null;
-    const token = getState().auth.userInfo?.token || userInfo?.token;
-
-    console.log('Token Retrieved:', token); // Debugging
+    const token = getState().auth?.userInfo?.token;
 
     if (token) {
       headers.set('Authorization', `Bearer ${token}`);
-    } else {
-      console.warn("⚠️ No Token Found in Redux or LocalStorage!");
     }
 
     return headers;
@@ -37,17 +31,17 @@ export const cartApiSlice = createApi({
       invalidatesTags: ['Cart'],
     }),
     removeFromCart: builder.mutation({
-      query: (id) => ({
-        url: `/cart/${id}`,
+      query: (productId) => ({
+        url: `/cart/remove/${productId}`,
         method: 'DELETE',
       }),
       invalidatesTags: ['Cart'],
     }),
     updateCart: builder.mutation({
-      query: ({ id, qty }) => ({
-        url: `/cart/${id}`,
-        method: 'PUT',
-        body: { qty },
+      query: ({ productId, quantity }) => ({
+        url: '/cart',
+        method: 'POST',
+        body: { productId, quantity },
       }),
       invalidatesTags: ['Cart'],
     }),

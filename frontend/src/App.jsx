@@ -9,6 +9,9 @@ import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import AdminDashboard from './screens/AdminDashboard';
+import ProductManagementScreen from './screens/ProductManagementScreen';
+import UserManagementScreen from './screens/UserManagementScreen';
+import ReviewManagementScreen from './screens/ReviewManagementScreen';
 import PrivateRoute from './screens/PrivateRoute';
 import NotFoundScreen from './screens/NotFoundScreen';
 import { useEffect } from 'react';
@@ -32,6 +35,9 @@ function App() {
             {/* Protected Routes */}
             <Route path='/profile' element={<PrivateRoute><ProfileScreen /></PrivateRoute>} />
             <Route path='/admin/dashboard' element={<PrivateRoute admin={true}><AdminDashboard /></PrivateRoute>} />
+            <Route path='/admin/products' element={<PrivateRoute admin={true}><ProductManagementScreen /></PrivateRoute>} />
+            <Route path='/admin/users' element={<PrivateRoute admin={true}><UserManagementScreen /></PrivateRoute>} />
+            <Route path='/admin/reviews' element={<PrivateRoute admin={true}><ReviewManagementScreen /></PrivateRoute>} />
 
             {/* 404 Page */}
             <Route path='*' element={<NotFoundScreen />} />

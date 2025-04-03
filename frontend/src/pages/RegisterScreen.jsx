@@ -55,8 +55,12 @@ const RegisterScreen = () => {
       const res = await registerUser({ name, email, password }).unwrap();
       // console.log('✅ API Response (Register):', res);
   
-      dispatch(setCredentials(res)); // ✅ Save user to Redux
-      localStorage.setItem('userInfo', JSON.stringify(res)); // ✅ Save to localStorage
+      // ✅ Redux store update with token expiry
+      dispatch(setCredentials({
+        user: res.user || res,
+        token: res.token,
+        expiresIn: 24 * 60 * 60 // 24 hours expiry
+      }));
   
       navigate(redirect);
     } catch (err) {

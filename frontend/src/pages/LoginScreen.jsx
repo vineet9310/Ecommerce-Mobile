@@ -55,9 +55,15 @@ const LoginScreen = () => {
         throw new Error('Invalid response, token missing!');
       }
 
-      // ✅ Redux store update + local storage me token save
-      dispatch(setCredentials(res));
-      localStorage.setItem('token', res.token);
+      // ✅ Redux store update with token expiry
+      dispatch(setCredentials({
+        user: res.user || res,
+        token: res.token,
+        expiresIn: 24 * 60 * 60 // 24 hours expiry
+      }));
+      
+      // Log login success
+      console.log('Login successful!');
 
       navigate(redirect);
     } catch (err) {

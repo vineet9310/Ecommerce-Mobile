@@ -26,7 +26,7 @@ import {
 } from '@chakra-ui/react';
 import { FiEdit, FiTrash2, FiPlus } from 'react-icons/fi';
 import { useDispatch } from 'react-redux';
-import { apiSlice } from '../slices/apiSlice';
+import { apiSlice } from '../../slices/apiSlice';
 
 const ProductManagementScreen = () => {
   const [products, setProducts] = useState([]);

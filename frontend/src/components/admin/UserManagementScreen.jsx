@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -23,35 +23,39 @@ import {
   IconButton,
   Flex,
   Badge,
+  Switch,
+  Spinner,
+  Alert,
+  AlertIcon,
 } from '@chakra-ui/react';
-import { FiEdit, FiTrash2, FiUser } from 'react-icons/fi';
-import { useDispatch } from 'react-redux';
-import { useGetUsersQuery, useDeleteUserMutation, useUpdateUserMutation, useCreateUserMutation } from '../../slices/apiSlice';
+import { FiEdit, FiTrash2, FiUserPlus } from 'react-icons/fi';
+import { 
+  useGetUsersQuery, 
+  useDeleteUserMutation, 
+  useUpdateUserMutation 
+} from '../../slices/usersApiSlice';
 
 const UserManagementScreen = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
-  const dispatch = useDispatch();
 
-  // Form state
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     isAdmin: false,
   });
 
-  // RTK Query hooks
   const { data: users = [], isLoading, error } = useGetUsersQuery();
   const [deleteUser] = useDeleteUserMutation();
   const [updateUser] = useUpdateUserMutation();
   const [createUser] = useCreateUserMutation();
 
   const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, type } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? e.target.checked : value
     }));
   };
 
@@ -74,13 +78,15 @@ const UserManagementScreen = () => {
           description: 'User deleted successfully',
           status: 'success',
           duration: 3000,
+          isClosable: true,
         });
-      } catch (error) {
+      } catch (err) {
         toast({
           title: 'Error',
-          description: error?.data?.message || 'Failed to delete user',
+          description: err?.data?.message || 'Failed to delete user',
           status: 'error',
           duration: 3000,
+          isClosable: true,
         });
       }
     }
@@ -91,36 +97,65 @@ const UserManagementScreen = () => {
     try {
       if (selectedUser) {
         await updateUser({ userId: selectedUser._id, userData: formData }).unwrap();
+        toast({
+          title: 'Success',
+          description: 'User updated successfully',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        });
       } else {
-        await createUser(formData).unwrap();
+        // Temporarily disable user creation or implement alternative
+        toast({
+          title: 'Error',
+          description: 'User creation is currently unavailable',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+        return;
       }
+      await createUser(formData).unwrap();
 
       toast({
         title: 'Success',
         description: `User ${selectedUser ? 'updated' : 'created'} successfully`,
         status: 'success',
         duration: 3000,
+        isClosable: true,
       });
 
       onClose();
-      setFormData({
-        name: '',
-        email: '',
-        isAdmin: false,
-      });
+      setFormData({ name: '', email: '', isAdmin: false });
       setSelectedUser(null);
-    } catch (error) {
+    } catch (err) {
       toast({
         title: 'Error',
-        description: error?.data?.message || error.message || 'Failed to save user',
+        description: err?.data?.message || err.message || 'Failed to save user',
         status: 'error',
         duration: 3000,
+        isClosable: true,
       });
     }
   };
 
+  const handleModalClose = () => {
+    setFormData({ name: '', email: '', isAdmin: false });
+    setSelectedUser(null);
+    onClose();
+  };
+
+  if (isLoading) return <Spinner size="xl" />;
+  if (error) return <Alert status="error"><AlertIcon />{error?.data?.message || 'Failed to load users'}</Alert>;
+
   return (
     <Box p={4}>
+      <Flex justifyContent="space-between" mb={4}>
+        <Button leftIcon={<FiUserPlus />} colorScheme="green" onClick={onOpen}>
+          Add New User
+        </Button>
+      </Flex>
+
       <Table variant="simple">
         <Thead>
           <Tr>
@@ -159,7 +194,7 @@ const UserManagementScreen = () => {
         </Tbody>
       </Table>
 
-      <Modal isOpen={isOpen} onClose={onClose}>
+      <Modal isOpen={isOpen} onClose={handleModalClose}>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>
@@ -175,6 +210,7 @@ const UserManagementScreen = () => {
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
+                    placeholder="Enter user name"
                   />
                 </FormControl>
 
@@ -185,20 +221,20 @@ const UserManagementScreen = () => {
                     type="email"
                     value={formData.email}
                     onChange={handleInputChange}
+                    placeholder="Enter email address"
                   />
                 </FormControl>
 
-                <FormControl>
-                  <FormLabel>Admin Status</FormLabel>
-                  <Input
+                <FormControl display="flex" alignItems="center">
+                  <FormLabel mb="0">Admin Status</FormLabel>
+                  <Switch
                     name="isAdmin"
-                    type="checkbox"
-                    checked={formData.isAdmin}
-                    onChange={handleInputChange}
+                    isChecked={formData.isAdmin}
+                    onChange={(e) => setFormData(prev => ({ ...prev, isAdmin: e.target.checked }))}
                   />
                 </FormControl>
 
-                <Button type="submit" colorScheme="blue">
+                <Button type="submit" colorScheme="blue" width="full">
                   {selectedUser ? 'Update' : 'Create'} User
                 </Button>
               </Stack>

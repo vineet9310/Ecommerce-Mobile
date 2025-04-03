@@ -2,16 +2,19 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Container } from '@chakra-ui/react';
 import Header from './components/Header';
 import Footer from './components/Footer';
+
 import HomeScreen from './screens/HomeScreen';
 import ProductScreen from './screens/ProductScreen';
 import CartScreen from './screens/CartScreen';
-import LoginScreen from './screens/LoginScreen';
-import RegisterScreen from './screens/RegisterScreen';
+
+import LoginScreen from './pages/LoginScreen';
+import RegisterScreen from './pages/RegisterScreen';
 import ProfileScreen from './screens/ProfileScreen';
-import AdminDashboard from './screens/AdminDashboard';
-import ProductManagementScreen from './screens/ProductManagementScreen';
-import UserManagementScreen from './screens/UserManagementScreen';
-import ReviewManagementScreen from './screens/ReviewManagementScreen';
+
+import AdminDashboard from './components/admin/AdminDashboard';
+import ProductManagementScreen from './components/admin/ProductManagementScreen';
+import UserManagementScreen from './components/admin/UserManagementScreen';
+import ReviewManagementScreen from './components/admin/ReviewManagementScreen';
 import PrivateRoute from './screens/PrivateRoute';
 import NotFoundScreen from './screens/NotFoundScreen';
 import { useEffect } from 'react';

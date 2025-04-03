@@ -4,11 +4,11 @@ import { createSlice } from '@reduxjs/toolkit';
 const loadFromStorage = (key) => {
   try {
     const data = localStorage.getItem(key);
-    return data ? JSON.parse(data) : null; // ✅ Handle invalid JSON
+    return data ? JSON.parse(data) : null;
   } catch (error) {
     console.error(`Error parsing ${key} from localStorage:`, error);
-    localStorage.removeItem(key); // ✅ Remove corrupted data
-    return null; // ✅ Fallback to null
+    localStorage.removeItem(key);
+    return null;
   }
 };
 
@@ -34,12 +34,21 @@ const isTokenValid = () => {
   return expiryTime && new Date().getTime() < expiryTime;
 };
 
-// 🔹 Initial state
-const initialState = {
-  userInfo: loadFromStorage('userInfo'),
-  token: isTokenValid() ? loadFromStorage('token') : null,
-  isAuthenticated: isTokenValid(),
+// 🔹 Initialize Auth State from Storage
+const getInitialAuthState = () => {
+  const token = loadFromStorage('token');
+  const userInfo = loadFromStorage('userInfo');
+  const valid = isTokenValid();
+
+  return {
+    userInfo: valid ? userInfo : null,
+    token: valid ? token : null,
+    isAuthenticated: valid,
+  };
 };
+
+// 🔹 Initial State
+const initialState = getInitialAuthState();
 
 // 🔹 Auth Slice
 const authSlice = createSlice({
@@ -56,7 +65,6 @@ const authSlice = createSlice({
       saveToStorage('userInfo', user);
       saveToStorage('token', token);
 
-      // Token Expiry Handling
       if (expiresIn) {
         const expiryTime = new Date().getTime() + expiresIn * 1000;
         saveToStorage('tokenExpiry', expiryTime);
@@ -74,7 +82,7 @@ const authSlice = createSlice({
       removeFromStorage('tokenExpiry');
     },
 
-    // ✅ Auto Logout on Token Expiry
+    // ✅ Auto Logout if token expired
     checkTokenExpiry: (state) => {
       if (!isTokenValid()) {
         state.userInfo = null;

@@ -9,21 +9,15 @@ import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import AdminDashboard from './screens/AdminDashboard';
+import ProductManagementScreen from './screens/ProductManagementScreen';
+import UserManagementScreen from './screens/UserManagementScreen';
+import ReviewManagementScreen from './screens/ReviewManagementScreen';
 import PrivateRoute from './screens/PrivateRoute';
 import NotFoundScreen from './screens/NotFoundScreen';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchCart } from './slices/cartSlice';
-
 function App() {
-  const dispatch = useDispatch();
   const userInfo = useSelector((state) => state.auth?.userInfo);
-
-  useEffect(() => {
-    if (userInfo) {
-      dispatch(fetchCart());
-    }
-  }, [userInfo, dispatch]);
 
   return (
     <Router>
@@ -33,13 +27,17 @@ function App() {
           <Routes>
             <Route path='/' element={<HomeScreen />} />
             <Route path='/product/:id' element={<ProductScreen />} />
-            <Route path='/cart/:id?' element={<CartScreen />} />
+            <Route path='/cart/:id?' element={<PrivateRoute><CartScreen /></PrivateRoute>} />
+            <Route path='/cart' element={<PrivateRoute><CartScreen /></PrivateRoute>} />
             <Route path='/login' element={<LoginScreen />} />
             <Route path='/register' element={<RegisterScreen />} />
             
             {/* Protected Routes */}
             <Route path='/profile' element={<PrivateRoute><ProfileScreen /></PrivateRoute>} />
             <Route path='/admin/dashboard' element={<PrivateRoute admin={true}><AdminDashboard /></PrivateRoute>} />
+            <Route path='/admin/products' element={<PrivateRoute admin={true}><ProductManagementScreen /></PrivateRoute>} />
+            <Route path='/admin/users' element={<PrivateRoute admin={true}><UserManagementScreen /></PrivateRoute>} />
+            <Route path='/admin/reviews' element={<PrivateRoute admin={true}><ReviewManagementScreen /></PrivateRoute>} />
 
             {/* 404 Page */}
             <Route path='*' element={<NotFoundScreen />} />

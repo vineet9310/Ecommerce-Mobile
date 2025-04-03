@@ -2,17 +2,17 @@ import mongoose from 'mongoose';
 
 const reviewSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
-    rating: { type: Number, required: true },
-    comment: { type: String, required: true },
+    name: { type: String, required: false },
+    rating: { type: Number, required: false },
+    comment: { type: String, required: false },
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      required: true,
+      required: false,
       ref: 'User',
     },
   },
   {
-    timestamps: true, // Reviews will have createdAt & updatedAt
+    timestamps: false, // Reviews will have createdAt & updatedAt
   }
 );
 
@@ -20,16 +20,22 @@ const productSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      required: true,
+      required: false,
       ref: 'User',
     },
     name: {
       type: String,
       required: [true, "Product name is required"],
     },
-    image: {
-      type: String,
-      required: [true, "Product image is required"],
+    images: {
+      type: [String],
+      required: [true, "At least one product image URL is required"],
+      validate: {
+        validator: function(v) {
+          return Array.isArray(v) && v.length > 0 && v.every(url => typeof url === 'string' && url.trim().length > 0);
+        },
+        message: "At least one valid image URL is required"
+      }
     },
     brand: {
       type: String,
@@ -71,7 +77,7 @@ const productSchema = new mongoose.Schema(
     },
   },
   {
-    timestamps: true, // Products will have createdAt & updatedAt
+    timestamps: false, // Products will have createdAt & updatedAt
   }
 );
 

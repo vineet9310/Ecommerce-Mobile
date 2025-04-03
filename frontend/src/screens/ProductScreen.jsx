@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useGetProductQuery } from '../slices/productsApiSlice';
 import { useAddToCartMutation } from '../slices/cartApiSlice';
+import { ChevronLeftIcon, ChevronRightIcon, CloseIcon } from '@chakra-ui/icons';
 
 import {
   Box,
@@ -26,6 +27,12 @@ import {
   Spinner,
   Alert,
   AlertIcon,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalBody,
+  ModalCloseButton,
+  IconButton,
 } from '@chakra-ui/react';
 import { StarIcon } from '@chakra-ui/icons';
 
@@ -35,10 +42,46 @@ const ProductScreen = () => {
   const [addToCart] = useAddToCartMutation();
   const [qty, setQty] = useState(1);
   const [errorMessage, setErrorMessage] = useState(null);
-
   const { data: product, isLoading, error } = useGetProductQuery(productId, {
     skip: !productId, // ✅ Ensure valid API call
   });
+
+  const [selectedImage, setSelectedImage] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
+  useEffect(() => {
+    if (product?.images && product.images.length > 0) {
+      setSelectedImage(product.images[0]);
+      setImageError(false);
+    } else if (product?.image) {
+      setSelectedImage(product.image);
+      setImageError(false);
+    }
+  }, [product]);
+
+  const handleImageError = () => {
+    setImageError(true);
+    // Set a fallback image URL or handle the error state
+    setSelectedImage('/images/fallback.png');
+  };
+
+  const handlePrevImage = () => {
+    const currentIndex = product.images.indexOf(selectedImage);
+    const newIndex = currentIndex === 0 ? product.images.length - 1 : currentIndex - 1;
+    setSelectedImage(product.images[newIndex]);
+  };
+
+  const handleNextImage = () => {
+    const currentIndex = product.images.indexOf(selectedImage);
+    const newIndex = currentIndex === product.images.length - 1 ? 0 : currentIndex + 1;
+    setSelectedImage(product.images[newIndex]);
+  };
+
+  const handleImageClick = (image) => {
+    setSelectedImage(image);
+    setIsModalOpen(true);
+  };
 
 
   const addToCartHandler = async () => {
@@ -75,16 +118,89 @@ const ProductScreen = () => {
   return (
     <Container maxW={'7xl'} py={12}>
       <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={10}>
-        <Flex>
-          <Image
-            rounded={'md'}
-            alt={product.name}
-            src={product.image}
-            fit={'cover'}
-            align={'center'}
-            w={'100%'}
-            h={{ base: '100%', sm: '400px', lg: '500px' }}
-          />
+        <Flex direction="column">
+          <Flex>
+            <Box w="100px" mr={4}>
+              <VStack spacing={2} align="stretch">
+                {product.images?.map((img, index) => (
+                  <Image
+                    key={index}
+                    src={img}
+                    alt={`${product.name} - ${index + 1}`}
+                    w="100%"
+                    h="100px"
+                    objectFit="cover"
+                    cursor="pointer"
+                    onClick={() => setSelectedImage(img)}
+                    borderWidth={2}
+                    borderColor={selectedImage === img ? 'blue.500' : 'transparent'}
+                    borderRadius="md"
+                    _hover={{ borderColor: 'blue.300' }}
+                    onError={handleImageError}
+                    fallback={<Box w="100%" h="100%" bg="gray.200" display="flex" alignItems="center" justifyContent="center"><Text>Image not available</Text></Box>}
+                  />
+                ))}
+              </VStack>
+            </Box>
+            <Box flex={1}>
+              <Image
+                rounded={'md'}
+                alt={product.name}
+                src={selectedImage || product.image}
+                fit={'cover'}
+                align={'center'}
+                w={'100%'}
+                h={{ base: '100%', sm: '400px', lg: '500px' }}
+                cursor="pointer"
+                onClick={() => setIsModalOpen(true)}
+                onError={handleImageError}
+                fallback={<Box w="100%" h="100%" bg="gray.200" display="flex" alignItems="center" justifyContent="center"><Text>Image not available</Text></Box>}
+              />
+
+              {/* Lightbox Modal */}
+              {isModalOpen && (
+                <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} size="full" isCentered>
+                  <ModalOverlay />
+                  <ModalContent bg="rgba(0, 0, 0, 0.9)" position="relative">
+                    <ModalCloseButton color="white" size="lg" position="absolute" right={4} top={4} zIndex={2} />
+                    <ModalBody display="flex" alignItems="center" justifyContent="center" position="relative" p={0}>
+                      {product.images && product.images.length > 1 && (
+                        <>
+                          <IconButton
+                            aria-label="Previous image"
+                            icon={<ChevronLeftIcon boxSize={8} />}
+                            position="absolute"
+                            left={4}
+                            onClick={handlePrevImage}
+                            colorScheme="whiteAlpha"
+                            size="lg"
+                            zIndex={2}
+                          />
+                          <IconButton
+                            aria-label="Next image"
+                            icon={<ChevronRightIcon boxSize={8} />}
+                            position="absolute"
+                            right={4}
+                            onClick={handleNextImage}
+                            colorScheme="whiteAlpha"
+                            size="lg"
+                            zIndex={2}
+                          />
+                        </>
+                      )}
+                      <Image
+                        src={selectedImage}
+                        alt={product.name}
+                        maxH="90vh"
+                        maxW="90vw"
+                        objectFit="contain"
+                      />
+                    </ModalBody>
+                  </ModalContent>
+                </Modal>
+              )}
+            </Box>
+          </Flex>
         </Flex>
         <Stack spacing={{ base: 6, md: 10 }}>
           <Box as={'header'}>

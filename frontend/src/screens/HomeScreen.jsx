@@ -15,6 +15,8 @@ import {
   Spinner,
   Alert,
   AlertIcon,
+  Button,
+  ButtonGroup,
 } from '@chakra-ui/react';
 import { StarIcon } from '@chakra-ui/icons';
 import { Link as RouterLink } from 'react-router-dom';
@@ -26,8 +28,12 @@ import { setCartItems } from '../slices/cartSlice';
 const HomeScreen = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('price');
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const { data: productsData, isLoading, error } = useGetProductsQuery();
+  const { data: productsData, isLoading, error } = useGetProductsQuery({
+    page: currentPage,
+    keyword: searchTerm
+  });
 
   // Extract products array from the API response
   const products = productsData?.products ? productsData.products : [];
@@ -95,7 +101,7 @@ const HomeScreen = () => {
                   as={RouterLink}
                   to={`/product/${product._id}`}
                 >
-                  <Image src={product.image} alt={product.name} />
+                  <Image src={product.images?.[0] || product.image} alt={product.name} />
 
                   <Box p='6'>
                     <Box display='flex' alignItems='baseline' gap={2}>
@@ -126,8 +132,16 @@ const HomeScreen = () => {
                         Key Specifications:
                       </Text>
                       <SimpleGrid columns={2} spacing={2} fontSize='xs'>
-                        <Text>• {product.specifications['Display']}</Text>
-                        <Text>• {product.specifications['Processor']}</Text>
+                        {product.specifications && (
+                          <>
+                            {product.specifications['Display'] && (
+                              <Text>• {product.specifications['Display']}</Text>
+                            )}
+                            {product.specifications['Processor'] && (
+                              <Text>• {product.specifications['Processor']}</Text>
+                            )}
+                          </>
+                        )}
                       </SimpleGrid>
                     </Stack>
 
@@ -154,6 +168,33 @@ const HomeScreen = () => {
                 </Box>
               ))}
             </SimpleGrid>
+
+            {/* Pagination Controls */}
+            {productsData && productsData.pages > 1 && (
+              <ButtonGroup spacing={2} justifyContent="center" mt={8}>
+                <Button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  isDisabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                {[...Array(productsData.pages).keys()].map(x => (
+                  <Button
+                    key={x + 1}
+                    onClick={() => setCurrentPage(x + 1)}
+                    colorScheme={currentPage === x + 1 ? "blue" : "gray"}
+                  >
+                    {x + 1}
+                  </Button>
+                ))}
+                <Button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, productsData.pages))}
+                  isDisabled={currentPage === productsData.pages}
+                >
+                  Next
+                </Button>
+              </ButtonGroup>
+            )}
           </>
         )}
       </Stack>

@@ -2,6 +2,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 const baseQuery = fetchBaseQuery({
   baseUrl: 'http://localhost:5000/api',
+  credentials: 'include', // ✅ Ensures JWT cookies are sent
   prepareHeaders: (headers, { getState }) => {
     const userInfoString = localStorage.getItem('userInfo');
     const userInfo = userInfoString ? JSON.parse(userInfoString) : null;
@@ -25,20 +26,20 @@ export const cartApiSlice = createApi({
   tagTypes: ['Cart'],
   endpoints: (builder) => ({
     getCart: builder.query({
-      query: () => '/cart',
+      query: () => '/cart', // ✅ Corrected API route
       providesTags: ['Cart'],
     }),
     addToCart: builder.mutation({
       query: (cartData) => ({
         url: '/cart',
         method: 'POST',
-        body: cartData,
+        body: { productId: cartData.product, quantity: cartData.quantity },
       }),
       invalidatesTags: ['Cart'],
     }),
     removeFromCart: builder.mutation({
       query: (id) => ({
-        url: `/cart/${id}`,
+        url: `/cart/remove/${id}`, // ✅ Corrected endpoint
         method: 'DELETE',
       }),
       invalidatesTags: ['Cart'],

@@ -34,19 +34,21 @@ const ProductScreen = () => {
   const navigate = useNavigate();
   const [addToCart] = useAddToCartMutation();
   const [qty, setQty] = useState(1);
+  const [errorMessage, setErrorMessage] = useState(null);
 
-  const { data: product, isLoading, error } = useGetProductQuery(productId);
+  const { data: product, isLoading, error } = useGetProductQuery(productId, {
+    skip: !productId, // ✅ Ensure valid API call
+  });
 
-  const [errorMessage, setErrorMessage] = useState(null); // New state for error
 
-const addToCartHandler = async () => {
-  try {
-    await addToCart({ productId, quantity: qty }).unwrap();
-    navigate('/cart');
-  } catch (err) {
-    setErrorMessage(err?.data?.message || 'Something went wrong!');
-  }
-};
+  const addToCartHandler = async () => {
+    try {
+      await addToCart({ product: productId, quantity: qty }).unwrap(); // ✅ Fixed payload format
+      navigate('/cart');
+    } catch (err) {
+      setErrorMessage(err?.data?.message || err?.message || 'Something went wrong!');
+    }
+  };
   
 
   if (isLoading) {
@@ -206,8 +208,8 @@ const addToCartHandler = async () => {
                       max={product.countInStock}
                       min={1}
                       value={qty}
-                      onChange={(value) => setQty(parseInt(value))}
-                    >
+                      onChange={(value) => setQty(Number(value) || 1)}
+                      >
                       <NumberInputField />
                       <NumberInputStepper>
                         <NumberIncrementStepper />
@@ -233,7 +235,7 @@ const addToCartHandler = async () => {
               transform: 'translateY(2px)',
               boxShadow: 'lg',
             }}
-            isDisabled={!product.countInStock || product.countInStock <= 0}
+            isDisabled={!product?.countInStock || product?.countInStock <= 0}
             onClick={addToCartHandler}
           >
             Add to cart

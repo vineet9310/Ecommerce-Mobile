@@ -28,6 +28,33 @@ import {
 import { Link as RouterLink } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 
+// Define regular navigation items
+const NAV_ITEMS = [
+  {
+    label: "Smartphones",
+    href: "/category/smartphones",
+  },
+  {
+    label: "Accessories",
+    href: "/category/accessories",
+  },
+  {
+    label: "Deals",
+    href: "/deals",
+  },
+];
+
+// Define Admin navigation items
+const ADMIN_NAV_ITEMS = [
+  {
+    label: "Dashboard", // Changed from Admin Dashboard for brevity in header
+    href: "/admin/dashboard",
+  },
+  // You could add more admin links here if needed, e.g.,
+  // { label: "Products", href: "/admin/products" },
+  // { label: "Users", href: "/admin/users" },
+];
+
 const Header = () => {
   const { isOpen, onToggle } = useDisclosure();
   const [search, setSearch] = useState("");
@@ -35,13 +62,8 @@ const Header = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // ✅ Just use userInfo from Redux
+  // ✅ Use userInfo from Redux
   const { userInfo } = useSelector((state) => state.auth);
-
-  // ✅ Monitor auth state changes
-  useEffect(() => {
-    // This will re-render the header when auth state changes
-  }, [userInfo]);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -61,6 +83,29 @@ const Header = () => {
       handleSearch(e);
     }
   };
+
+  // ✅ Function to render navigation links based on isAdmin status
+  const renderNavLinks = (items) => {
+    return items.map((navItem) => (
+      <Box key={navItem.label}>
+        <Link
+          as={RouterLink}
+          p={2}
+          to={navItem.href ?? "#"}
+          fontSize={"sm"}
+          fontWeight={500}
+          color={useColorModeValue("gray.600", "gray.200")}
+          _hover={{
+            textDecoration: "none",
+            color: useColorModeValue("blue.500", "blue.300"),
+          }}
+        >
+          {navItem.label}
+        </Link>
+      </Box>
+    ));
+  };
+
 
   return (
     <Box>
@@ -103,26 +148,13 @@ const Header = () => {
             MobileShop
           </Text>
 
+          {/* Desktop Navigation */}
           <Flex display={{ base: "none", md: "flex" }} ml={10}>
             <Stack direction={"row"} spacing={4}>
-              {NAV_ITEMS.map((navItem) => (
-                <Box key={navItem.label}>
-                  <Link
-                    as={RouterLink}
-                    p={2}
-                    to={navItem.href ?? "#"}
-                    fontSize={"sm"}
-                    fontWeight={500}
-                    color={useColorModeValue("gray.600", "gray.200")}
-                    _hover={{
-                      textDecoration: "none",
-                      color: useColorModeValue("blue.500", "blue.300"),
-                    }}
-                  >
-                    {navItem.label}
-                  </Link>
-                </Box>
-              ))}
+              {/* ✅ Render Admin links if user is admin */}
+              {userInfo?.isAdmin && renderNavLinks(ADMIN_NAV_ITEMS)}
+              {/* Render regular links */}
+              {renderNavLinks(NAV_ITEMS)}
             </Stack>
           </Flex>
         </Flex>
@@ -133,6 +165,7 @@ const Header = () => {
           direction={"row"}
           spacing={6}
         >
+          {/* Search Input */}
           <InputGroup w={{ base: "100%", md: "300px" }}>
             <Input
               placeholder="Search products..."
@@ -192,27 +225,35 @@ const Header = () => {
         </Stack>
       </Flex>
 
+      {/* Mobile Navigation */}
       <Collapse in={isOpen} animateOpacity>
-        <MobileNav />
+        {/* ✅ Pass userInfo to MobileNav */}
+        <MobileNav userInfo={userInfo} />
       </Collapse>
     </Box>
   );
 };
 
-const MobileNav = () => {
+// Mobile Nav Component (updated to accept userInfo)
+const MobileNav = ({ userInfo }) => {
+  // ✅ Conditional array of items for mobile nav
+  const mobileNavItems = userInfo?.isAdmin ? [...ADMIN_NAV_ITEMS, ...NAV_ITEMS] : NAV_ITEMS;
+
   return (
     <Stack
       bg={useColorModeValue("white", "gray.800")}
       p={4}
       display={{ md: "none" }}
     >
-      {NAV_ITEMS.map((navItem) => (
+      {/* ✅ Map over the conditional array */}
+      {mobileNavItems.map((navItem) => (
         <MobileNavItem key={navItem.label} {...navItem} />
       ))}
     </Stack>
   );
 };
 
+// Mobile Nav Item Component (no changes needed here)
 const MobileNavItem = ({ label, children, href }) => {
   const { isOpen, onToggle } = useDisclosure();
 
@@ -273,19 +314,7 @@ const MobileNavItem = ({ label, children, href }) => {
   );
 };
 
-const NAV_ITEMS = [
-  {
-    label: "Smartphones",
-    href: "/category/smartphones",
-  },
-  {
-    label: "Accessories",
-    href: "/category/accessories",
-  },
-  {
-    label: "Deals",
-    href: "/deals",
-  },
-];
+// Original NAV_ITEMS definition moved up
+
 
 export default Header;

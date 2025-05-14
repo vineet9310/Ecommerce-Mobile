@@ -30,19 +30,26 @@ const LoginScreen = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { userInfo } = useSelector((state) => state.auth);
+  const { userInfo } = useSelector((state) => state.auth); // Existing Redux state access
 
   const { search } = useLocation();
   const sp = new URLSearchParams(search);
-  const redirect = sp.get('redirect') || '/';
+  const redirect = sp.get('redirect') || '/'; // Default redirect for regular users
 
   const [loginUser, { isLoading }] = useLoginUserMutation();
 
   useEffect(() => {
+    // This useEffect handles redirection if user is *already* logged in
+    // It should also consider admin status
     if (userInfo) {
-      navigate(redirect);
+        // Check if already logged in and is admin
+        if (userInfo.isAdmin) {
+            navigate('/admin/dashboard'); // Redirect admin to dashboard if already logged in
+        } else {
+            navigate(redirect); // Redirect regular user to default redirect if already logged in
+        }
     }
-  }, [navigate, redirect, userInfo]);
+  }, [navigate, redirect, userInfo]); // Added userInfo to dependency array
 
   const submitHandler = async (e) => {
     e.preventDefault();
@@ -56,16 +63,27 @@ const LoginScreen = () => {
       }
 
       // ✅ Redux store update with token expiry
+      // setCredentials expects { user, token, expiresIn }
+      // Assuming backend response 'res' contains { user: { ... }, token: '...' }
+      // Or sometimes the user object directly if no separate 'user' key
+      const userData = res.user || res; // Adjust based on actual backend response structure
+
       dispatch(setCredentials({
-        user: res.user || res,
+        user: userData, // Use extracted user data
         token: res.token,
         expiresIn: 24 * 60 * 60 // 24 hours expiry
       }));
-      
-      // Log login success
-      console.log('Login successful!');
 
-      navigate(redirect);
+      // Log login success
+      console.log('Login successful!', userData);
+
+      // ✅ Check isAdmin status from the response data and navigate accordingly
+      if (userData.isAdmin) {
+        navigate('/admin/dashboard'); // Redirect admin to admin dashboard
+      } else {
+        navigate(redirect); // Redirect regular user to the intended page or home
+      }
+
     } catch (err) {
       console.error('Login Error:', err);
       setError(err?.data?.message || err?.message || 'Invalid email or password');

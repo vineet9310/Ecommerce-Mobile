@@ -1,33 +1,26 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { logout, setCredentials } from '../slices/authSlice';
-
-// 🔹 Base API Query
 const baseQuery = fetchBaseQuery({
   baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000',
   credentials: 'include',
   prepareHeaders: (headers, { getState }) => {
-    const token = getState().auth.token || localStorage.getItem('token');  // ✅ Check Redux state first
+    const token = getState().auth.token || localStorage.getItem('token');
     if (token) {
       headers.set('authorization', `Bearer ${token}`);
     }
     return headers;
   },
 });
-
-// 🔹 Base Query with Token Refresh & Error Handling
 const baseQueryWithAuthHandling = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions);
 
   if (result.error && result.error.status === 401) {
     console.warn('Unauthorized! Trying to refresh token...');
-
     const refreshResult = await baseQuery('/api/auth/refresh-token', api, extraOptions);
 
     if (refreshResult.data) {
       api.dispatch(setCredentials(refreshResult.data));
       localStorage.setItem('token', refreshResult.data.token);
-
-      // 🔄 Retry original request
       result = await baseQuery(args, api, extraOptions);
     } else {
       console.warn('Token refresh failed! Logging out...');
@@ -38,8 +31,9 @@ const baseQueryWithAuthHandling = async (args, api, extraOptions) => {
 
   if (result.error && result.error.status === 500) {
     console.error('API Error:', result.error);
+    // You might want to provide more specific feedback based on backend error details
     result.error.data = {
-      message: 'Internal Server Error. Please try again later.',
+      message: result.error.data?.message || 'Internal Server Error. Please try again later.',
       details: result.error.data,
     };
   }
@@ -50,9 +44,8 @@ const baseQueryWithAuthHandling = async (args, api, extraOptions) => {
 // 🔹 API Slice
 export const apiSlice = createApi({
   baseQuery: baseQueryWithAuthHandling,
-  tagTypes: ['Product', 'Order', 'User', 'Cart'],  // ✅ Added 'Cart' for caching cart data
+  tagTypes: ['Product', 'Order', 'User', 'Cart', 'AdminStats'], // Added 'AdminStats' tag
   endpoints: (builder) => ({
-    // ✅ User Registration
     registerUser: builder.mutation({
       query: (userData) => ({
         url: '/api/users/register',
@@ -92,6 +85,10 @@ export const apiSlice = createApi({
     refreshToken: builder.query({
       query: () => '/api/auth/refresh-token',
     }),
+    getAdminStats: builder.query({
+      query: () => '/api/admin/stats', // Assuming a single endpoint for all stats
+      providesTags: ['AdminStats'],
+    }),
   }),
   keepUnusedDataFor: 30,
 });
@@ -101,4 +98,5 @@ export const {
   useRegisterUserMutation,
   useLoginUserMutation,
   useRefreshTokenQuery,
+  useGetAdminStatsQuery,
 } = apiSlice;

@@ -1,24 +1,22 @@
 import { Box, Flex, useColorModeValue } from '@chakra-ui/react';
-import Sidebar from '../shared/Sidebar'; // Import the Sidebar component
+import Sidebar from '../shared/Sidebar'; // Ensure this path is correct
 
-// This component provides a consistent layout for all admin pages
 const AdminLayout = ({ children }) => {
-  return (
-    <Flex>
-      {/* The Sidebar will always be visible on admin routes */}
-      <Sidebar />
+  const sidebarWidth = "250px";
+  const headerHeight = "60px"; // Assuming your fixed header height
 
-      {/* Main content area */}
+  return (
+    <Flex    >
+      <Sidebar />
       <Box
-        // ml="250px" offsets the content to make space for the 250px wide sidebar
-        ml={{ base: 0, md: "250px" }} // Adjust margin for smaller screens if needed
-        w={{ base: "full", md: "calc(100% - 250px)" }} // Content takes full width on small screens, remaining width on larger
-        p={6} // Add some padding around the content
-        bg={useColorModeValue('gray.50', 'gray.800')} // Background color
-        minH="calc(100vh - 60px)" // Minimum height (subtracting header height)
+        ml={{ base: 0, md: sidebarWidth }} // Sidebar is fixed, so we need to offset the main content
+        w={{ base: "full", md: `calc(100% - ${sidebarWidth})` }}
+        bg={useColorModeValue('gray.50', 'gray.800')}
+        height={`calc(100vh - ${headerHeight})`} // Set explicit height matching the conceptual space
+        overflowY="auto" // IMPORTANT: If content inside is taller, this Box will scroll
+        p={6} // Moved padding here, so scrollbar is outside padding
       >
-        {/* Render the specific admin page component passed as children */}
-        {children}
+        {children} {/* This is where AdminDashboard, ProductManagementScreen, etc., render */}
       </Box>
     </Flex>
   );

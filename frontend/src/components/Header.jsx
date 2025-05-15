@@ -108,7 +108,15 @@ const Header = () => {
 
 
   return (
-    <Box>
+     <Box
+      position="fixed"
+      top="0"
+      left="0"
+      right="0"
+      zIndex="sticky" // Chakra UI's zIndex for sticky elements (1100)
+      bg={useColorModeValue("white", "gray.800")}
+      boxShadow="sm" // Optional: add a shadow for better separation
+    >
       <Flex
         bg={useColorModeValue("white", "gray.800")}
         color={useColorModeValue("gray.600", "white")}

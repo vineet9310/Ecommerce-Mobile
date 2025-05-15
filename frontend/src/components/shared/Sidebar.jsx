@@ -24,12 +24,15 @@ const Sidebar = () => {
       as="nav"
       pos="fixed"
       left={0}
-      h="calc(100vh - 60px)"
-      top="60px"
+      // top="60px" is crucial and should align with the fixed Header's height
+      top="60px" 
+      h="calc(100vh - 60px)" // Height of sidebar is viewport minus header
       w="250px"
-      bg="white"
+      bg="white" // Or useColorModeValue
       borderRightWidth={1}
       p={4}
+      zIndex="docked" // Chakra zIndex for elements docked below sticky (1000)
+                       // Ensure it's below Header's zIndex="sticky" (1100)
     >
       <VStack spacing={4} align="stretch">
         <SidebarItem icon={FiBarChart2} to="/admin/dashboard">

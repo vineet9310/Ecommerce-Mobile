@@ -269,7 +269,6 @@ const ProductManagementScreen = () => {
                   <Table variant="simple">
                     <Thead>
                       <Tr>
-                        <Th>ID</Th>
                         <Th>Name</Th>
                         <Th>Price</Th>
                         <Th>Images</Th>
@@ -281,7 +280,6 @@ const ProductManagementScreen = () => {
                     <Tbody>
                       {productsByCategory[category].map((product) => (
                         <Tr key={product._id}>
-                          <Td>{product._id}</Td>
                           <Td>{product.name}</Td>
                           <Td>${product.price.toFixed(2)}</Td>
                           <Td>

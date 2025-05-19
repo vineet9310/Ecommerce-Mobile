@@ -19,6 +19,7 @@ import ReviewManagementScreen from "./components/admin/ReviewManagementScreen";
 
 import PrivateRoute from "./screens/PrivateRoute";
 import NotFoundScreen from "./screens/NotFoundScreen";
+import Accessories from './components/user/Accessories'; // Import Accessories component
 
 // Main App component that now includes logic to hide footer on admin pages
 function AppContent() {
@@ -39,6 +40,7 @@ function AppContent() {
             <Route path="/product/:id" element={<ProductScreen />} />
             <Route path="/login" element={<LoginScreen />} />
             <Route path="/register" element={<RegisterScreen />} />
+            <Route path="/accessories" element={<Accessories />} />
 
             {/* Protected Routes (User Specific) */}
             <Route

@@ -280,7 +280,7 @@ const NAV_ITEMS = [
   },
   {
     label: "Accessories",
-    href: "/category/accessories",
+    href: "/accessories",
   },
   {
     label: "Deals",

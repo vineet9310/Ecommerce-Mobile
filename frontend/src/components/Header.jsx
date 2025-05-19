@@ -31,12 +31,12 @@ import { useSelector, useDispatch } from "react-redux";
 // Define regular navigation items
 const NAV_ITEMS = [
   {
-    label: "Smartphones",
+    label: "MobileShop",
     href: "/category/smartphones",
   },
   {
     label: "Accessories",
-    href: "/category/accessories",
+    href: "/accessories",
   },
   {
     label: "Deals",
@@ -153,7 +153,7 @@ const Header = () => {
             _hover={{ color: "blue.500" }}
           >
             <Icon as={PhoneIcon} w={6} h={6} mr={2} />
-            MobileShop
+            Smartphones
           </Text>
 
           {/* Desktop Navigation */}
